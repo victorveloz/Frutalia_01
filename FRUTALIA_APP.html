@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Frutalia - Pedidos</title>
+  <link href="https://fonts.googleapis.com/css2?family=Pacifico&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet" />
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Open Sans', sans-serif;
+      background: linear-gradient(135deg, #FFF8E1, #FFF3E0);
+      color: #333;
+    }
+
+    .container {
+      max-width: 600px;
+      margin: 2rem auto;
+      background: #ffffff;
+      border-radius: 20px;
+      padding: 2rem;
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+    }
+
+    h1 {
+      font-family: 'Pacifico', cursive;
+      color: #FF6F00;
+      text-align: center;
+      margin-bottom: 0.5rem;
+    }
+
+    p {
+      text-align: center;
+      margin-bottom: 2rem;
+      color: #888;
+    }
+
+    label {
+      display: block;
+      margin: 1rem 0 0.5rem;
+      font-weight: 600;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      padding: 0.75rem;
+      border: 2px solid #FFCC80;
+      border-radius: 10px;
+      background: #FFF8E1;
+      font-size: 1rem;
+    }
+
+    button {
+      margin-top: 1.5rem;
+      padding: 0.75rem;
+      background-color: #FF9800;
+      color: white;
+      font-weight: bold;
+      font-size: 1rem;
+      border: none;
+      border-radius: 10px;
+      width: 100%;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    button:hover {
+      background-color: #F57C00;
+    }
+
+    .mensaje-exito {
+      margin-top: 1rem;
+      background-color: #C8E6C9;
+      color: #256029;
+      padding: 1rem;
+      border-radius: 10px;
+      text-align: center;
+      display: none;
+    }
+
+    h2 {
+      margin-top: 3rem;
+      color: #388E3C;
+      text-align: center;
+    }
+
+    .pedidos > div {
+      background-color: #FFFDE7;
+      padding: 1rem;
+      border: 1px solid #FFE082;
+      border-radius: 10px;
+      margin-bottom: 1rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Frutalia</h1>
+    <p>¡Pide tu jugo favorito y recógelo en 10 minutos!</p>
+
+    <form id="pedidoForm">
+      <label for="nombre">Nombre del cliente:</label>
+      <input type="text" id="nombre" name="nombre" required />
+
+      <label for="telefono">Teléfono:</label>
+      <input type="tel" id="telefono" name="telefono" required />
+
+      <label for="sabor">Sabor del jugo:</label>
+      <select id="sabor" name="sabor" required>
+        <option value="">--Selecciona--</option>
+        <option value="naranja">Naranja</option>
+        <option value="mango">Mango</option>
+        <option value="fresa">Fresa</option>
+        <option value="piña">Piña</option>
+      </select>
+
+      <label for="tamano">Tamaño:</label>
+      <select id="tamano" name="tamano" required>
+        <option value="">--Selecciona--</option>
+        <option value="chico">Chico</option>
+        <option value="mediano">Mediano</option>
+        <option value="grande">Grande</option>
+      </select>
+
+      <label for="comentarios">Comentarios adicionales:</label>
+      <textarea id="comentarios" name="comentarios" rows="3"></textarea>
+
+      <button type="submit">Enviar Pedido</button>
+    </form>
+
+    <div id="mensajeExito" class="mensaje-exito"></div>
+
+    <h2>Pedidos Recientes</h2>
+    <div id="listaPedidos" class="pedidos"></div>
+  </div>
+
+  <script>
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbwUAyT8JKsyst76GbqwYbzV6WejJJk1hYuoMJ9dL8Q4KDhPofDrnFkFYJobWPkAU3G8/exec';
+    const form = document.getElementById('pedidoForm');
+    const mensajeExito = document.getElementById('mensajeExito');
+    const listaPedidos = document.getElementById('listaPedidos');
+
+    form.addEventListener('submit', e => {
+      e.preventDefault();
+      const datos = new FormData(form);
+
+      fetch(scriptURL, { method: 'POST', body: datos })
+        .then(response => {
+          form.reset();
+          mensajeExito.textContent = 'Tu pedido ha sido enviado con éxito, pasa a recogerlo en 10 minutos. ¡Frutalia agradece tu preferencia!';
+          mensajeExito.style.display = 'block';
+          obtenerPedidos();
+          setTimeout(() => mensajeExito.style.display = 'none', 5000);
+        })
+        .catch(error => console.error('Error!', error.message));
+    });
+
+    function obtenerPedidos() {
+      fetch(scriptURL)
+        .then(res => res.json())
+        .then(data => {
+          listaPedidos.innerHTML = '';
+          data.reverse().forEach(pedido => {
+            const div = document.createElement('div');
+            div.innerHTML = `
+              <strong>${pedido.nombre}</strong> - ${pedido.sabor} (${pedido.tamano})<br>
+              <small>${pedido.telefono} - ${pedido.comentarios}</small>
+            `;
+            listaPedidos.appendChild(div);
+          });
+        })
+        .catch(err => console.error('Error al obtener pedidos:', err));
+    }
+
+    obtenerPedidos();
+  </script>
+
+  <!-- ========================== -->
+  <!-- 📜 CÓDIGO APP SCRIPT       -->
+  <!-- ========================== -->
+  <!--
+  Pega este código en Google Sheets (Extensiones > Apps Script)
+
+  function doPost(e) {
+    const sheet = SpreadsheetApp.openByUrl('https://docs.google.com/spreadsheets/d/1WrmwGe75rPk6FUpotYqfxOXM7SKWSBFfqP9PyFJ1-Ak/edit').getSheetByName("BASE DE DATOS");
+    sheet.appendRow([
+      e.parameter.nombre,
+      e.parameter.telefono,
+      e.parameter.sabor,
+      e.parameter.tamano,
+      e.parameter.comentarios,
+      new Date()
+    ]);
+    return ContentService.createTextOutput("OK");
+  }
+
+  function doGet(e) {
+    const sheet = SpreadsheetApp.openByUrl('https://docs.google.com/spreadsheets/d/1WrmwGe75rPk6FUpotYqfxOXM7SKWSBFfqP9PyFJ1-Ak/edit').getSheetByName("BASE DE DATOS");
+    const data = sheet.getDataRange().getValues();
+    const headers = data.shift();
+    const pedidos = data.map(row => ({
+      nombre: row[0],
+      telefono: row[1],
+      sabor: row[2],
+      tamano: row[3],
+      comentarios: row[4]
+    }));
+    return ContentService.createTextOutput(JSON.stringify(pedidos)).setMimeType(ContentService.MimeType.JSON);
+  }
+  -->
+</body>
+</html>
